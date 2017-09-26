@@ -1,71 +1,46 @@
 sudo: required
-language : 
-  - go  
+language :
+  - go
+go:
+  - 1.9
+  - 1.8
+  - 1.7
 os:
   - linux
 services:
   - docker
 
-branches:
-  only:
-    - master
-    - /^v\d+\.\d+\.\d+(\.\d+)?(-\S*)?$/
-    
-cache:
-  bundler: false
-  directories:
-  - .build-cache          # images.txt
-# Handle git submodules yourself
-git:
-    submodules: false
 # Do a github login using token
 before_install:
   - "echo -e \"machine github.com\n  login ${GITHUB_USER_TOKEN}\" >> ~/.netrc"
 install:
   - go get -u github.com/constabulary/gb/...
-  - go get -u github.com/tools/godep/... 
-  
-  
+
 script:
-  - cd $GOPATH/src/github.com/TIBCOSoftware
-  - git clone https://github.com/TIBCOSoftware/mashling-cicd.git mashling-cicd
-  - cp -r $GOPATH/src/github.com/TIBCOSoftware/mashling-cicd/dependency-config/* $GOPATH/src/github.com/TIBCOSoftware/mashling
-  - cd mashling
-  - godep restore
-  - go test ./...
-  - go install ./...
-  - mashling version
-  - cd $GOPATH/src/github.com/TIBCOSoftware
-  - pushd mashling-cicd/sample-recipes
-  - rm -rf builds
-  - mkdir -p builds/latest
-  - chmod ugo+x ./build-recipes.sh ./sanity.sh
-  - ./build-recipes.sh
-  - ./sanity.sh
-  - popd
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then    
-    pushd mashling-cicd/docker/mashling;
-    chmod ugo+x ./build-mashling.sh ;
-    ./build-mashling.sh ;
-    popd ;
-    fi
-    
+  - go test -v ./cli/...
+
 after_script:
   - "[ -f \"${HOME}/.netrc\" ] && rm -f ${HOME}/.netrc"
 
-after_success:
+deploy:
+  provider: script
+  script: deploy.sh
+  on:
+    branch: master
+
+after_deploy:
   - "docker login -u=\"${DOCKER_USERNAME}\" -p=\"${DOCKER_PASSWORD}\" tibdocker.tibco.com"
   - source $GOPATH/src/github.com/TIBCOSoftware/mashling-cicd/scripts/init.sh
   - mashling::module::postbuild mashling mashling
 
-
-notifications: 
-  email: 
+notifications:
+  email:
     on_failure: always
     on_success: always
-    recipients: 
+    recipients:
       - jpark@tibco.com
       - rpolishe@tibco.com
       - lmekala@tibco.com
       - nthota@tibco.com
       - ykalidin@tibco.com
+      - jbozek@tibco.com
