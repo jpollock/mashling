@@ -2,7 +2,7 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package gorillamuxtrigger
 
 import (
@@ -114,8 +114,6 @@ func getLocalIP() string {
 //Init trigger initialization
 func (t *RestTrigger) Init(runner action.Runner) {
 
-	log.SetLogLevel(logger.DebugLevel)
-
 	// router := httprouter.New()
 	router := mux.NewRouter()
 
@@ -125,6 +123,13 @@ func (t *RestTrigger) Init(runner action.Runner) {
 
 	if _, ok := t.config.Settings["port"]; !ok {
 		panic(fmt.Sprintf("No Port found for trigger '%s' in settings", t.config.Id))
+	}
+
+	//Substitute for any environment variables referenced in the settings.
+	//Expressions will be in the format ${env.SERVER_KEY} where SERVER_KEY is the env variable
+	err := util.ResolveEnvironmentProperties(t.config.Settings)
+	if err != nil {
+		panic(fmt.Sprint(err))
 	}
 
 	addr := ":" + t.config.GetSetting("port")

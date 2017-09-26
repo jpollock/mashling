@@ -53,7 +53,7 @@
                                     },
                                     {
                                         "name": "uri",
-                                        "value": "https://localhost:8080/",
+                                        "value": null,
                                         "required": true,
                                         "type": "string"
                                     },
@@ -77,23 +77,45 @@
                                     },
                                     {
                                         "name": "serverCert",
-                                        "value": "gateway.crt",
+                                        "value": null,
                                         "required": false,
                                         "type": "string"
                                     },
                                     {
                                         "name": "serverKey",
-                                        "value": "gateway.key",
+                                        "value": null,
                                         "required": false,
                                         "type": "string"
                                     },
                                     {
                                         "name": "trustStore",
-                                        "value": "truststore",
+                                        "value": null,
                                         "required": false,
                                         "type": "string"
                                     }
-                                ]
+                                ],
+                                "inputMappings":[
+				                    {
+                                        "type":1,
+                                        "value":"${env.TRUST_STORE}",
+                                        "mapTo":"trustStore"
+                                    },
+				                    {
+                                        "type":1,
+                                        "value":"${env.SERVER_KEY}",
+                                        "mapTo":"serverKey"
+                                    },
+				                    {
+                                        "type":1,
+                                        "value":"${env.SERVER_CERT}",
+                                        "mapTo":"serverCert"
+                                    },
+                                    {
+                                        "type":1,
+                                        "value":"${env.ENDPOINT_URL}",
+                                        "mapTo":"uri"
+                                    }
+				                ]
                             },
                             {
                                 "id": 3,
