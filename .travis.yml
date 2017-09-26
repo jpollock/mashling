@@ -3,8 +3,7 @@ language :
   - go
 go:
   - 1.9
-  - 1.8
-  - 1.7
+
 os:
   - linux
 services:
@@ -22,25 +21,20 @@ script:
 after_script:
   - "[ -f \"${HOME}/.netrc\" ] && rm -f ${HOME}/.netrc"
 
-deploy:
-  provider: script
-  script: deploy.sh
-  on:
-    branch: master
-
-after_deploy:
-  - "docker login -u=\"${DOCKER_USERNAME}\" -p=\"${DOCKER_PASSWORD}\" tibdocker.tibco.com"
-  - source $GOPATH/src/github.com/TIBCOSoftware/mashling-cicd/scripts/init.sh
-  - mashling::module::postbuild mashling mashling
+# deploy:
+#   provider: script
+#   script: deploy.sh
+#   on:
+#     branch: master
+#
+# after_deploy:
+#   - "docker login -u=\"${DOCKER_USERNAME}\" -p=\"${DOCKER_PASSWORD}\" tibdocker.tibco.com"
+#   - source $GOPATH/src/github.com/TIBCOSoftware/mashling-cicd/scripts/init.sh
+#   - mashling::module::postbuild mashling mashling
 
 notifications:
   email:
     on_failure: always
     on_success: always
     recipients:
-      - jpark@tibco.com
-      - rpolishe@tibco.com
-      - lmekala@tibco.com
-      - nthota@tibco.com
-      - ykalidin@tibco.com
       - jbozek@tibco.com
