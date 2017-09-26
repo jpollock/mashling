@@ -2,17 +2,17 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package app
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/TIBCOSoftware/flogo-cli/util"
 	"github.com/stretchr/testify/assert"
@@ -22,12 +22,9 @@ func TestSampleGateways(t *testing.T) {
 	resetDir, err := os.Getwd()
 	defer os.Chdir(resetDir)
 	assert.NoError(t, err, "Unable to access the current directory %v", err)
-	now := time.Now()
-	testDir := os.Getenv("GOPATH") + "/sample_mashling_gateways_" + now.Format(time.RFC3339)
-
-	err = os.Mkdir(testDir, 0755)
-	assert.NoError(t, err, "Unable to create the tests directory under $GOPATH %v", err)
-
+	testDir, err := ioutil.TempDir("", "sampleTests")
+	assert.NoError(t, err, "Unable to create the sample tests temporary directory %v", err)
+	defer os.RemoveAll(testDir)
 	samplesDir, err := filepath.Abs("../samples")
 	assert.NoError(t, err, "Unable to access the samples directory %v", samplesDir)
 
@@ -70,7 +67,4 @@ func TestSampleGateways(t *testing.T) {
 		assert.NoError(t, err, "Error: Error getting the sample app dir '%v' %v", sample, err)
 
 	}
-
-	err = os.RemoveAll(testDir)
-	assert.NoError(t, err, "Error: Error cleaning up working dir '%v' %v", testDir, err)
 }
