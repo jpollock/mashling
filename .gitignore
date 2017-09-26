@@ -18,7 +18,7 @@ out/
 .DS_Store
 
 bin/
-pkg/
+/pkg/
 **/vendor/src/
 **/vendor/manifest
 
