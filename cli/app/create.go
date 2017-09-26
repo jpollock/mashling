@@ -10,12 +10,14 @@ import (
 	"fmt"
 	"os"
 
+	"encoding/base64"
 	"encoding/json"
 	"path"
 
 	"github.com/TIBCOSoftware/flogo-cli/util"
 	"github.com/TIBCOSoftware/mashling/cli/cli"
 	"github.com/TIBCOSoftware/mashling/lib/model"
+	"github.com/TIBCOSoftware/mashling/lib/types"
 )
 
 var optCreate = &cli.OptionInfo{
@@ -52,21 +54,23 @@ func (c *cmdCreate) AddFlags(fs *flag.FlagSet) {
 // Exec implementation of cli.Command.Exec
 func (c *cmdCreate) Exec(args []string) error {
 
-	var gatewayJson string
+	var gatewayJSON string
 	var gatewayName string
 	var err error
+	var bytes []byte
+	var mashling types.Microgateway
 
 	if c.fileName != "" {
 
 		if fgutil.IsRemote(c.fileName) {
 
-			gatewayJson, err = fgutil.LoadRemoteFile(c.fileName)
+			gatewayJSON, err = fgutil.LoadRemoteFile(c.fileName)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: Error loading app file '%s' - %s\n\n", c.fileName, err.Error())
 				os.Exit(2)
 			}
 		} else {
-			gatewayJson, err = fgutil.LoadLocalFile(c.fileName)
+			gatewayJSON, err = fgutil.LoadLocalFile(c.fileName)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: Error loading app file '%s' - %s\n\n", c.fileName, err.Error())
 				os.Exit(2)
@@ -88,15 +92,24 @@ func (c *cmdCreate) Exec(args []string) error {
 		}
 
 		gatewayName = args[0]
-		mashling, err := model.CreateMashlingSampleModel()
-		if err != nil {
-			return err
+
+		if b64GatewayJSON := os.Getenv("MASHLING_CONFIG"); b64GatewayJSON != "" {
+			bytes, err = base64.StdEncoding.DecodeString(b64GatewayJSON)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error: Cannot read contents of existing MASHLING_CONFIG environment variable: %s\n\n", err.Error())
+				os.Exit(1)
+			}
+		} else {
+			mashling, err = model.CreateMashlingSampleModel()
+			if err != nil {
+				return err
+			}
+			bytes, err = json.MarshalIndent(mashling, "", "\t")
+			if err != nil {
+				return err
+			}
 		}
-		bytes, err := json.MarshalIndent(mashling, "", "\t")
-		if err != nil {
-			return err
-		}
-		gatewayJson = string(bytes)
+		gatewayJSON = string(bytes)
 	}
 
 	currentDir, err := os.Getwd()
@@ -107,14 +120,12 @@ func (c *cmdCreate) Exec(args []string) error {
 
 	appDir := path.Join(currentDir, gatewayName)
 
-	isValidJson := false
+	isValidJSON, invalidErr := IsValidateGateway(gatewayJSON)
 
-	isValidJson, err = IsValidateGateway(gatewayJson)
-
-	if !isValidJson {
-		fmt.Print("Mashling creation aborted \n")
-		return err
+	if !isValidJSON {
+		fmt.Fprintf(os.Stderr, "Error: Provided JSON file is invalid: %s\n\n", invalidErr.Error())
+		os.Exit(1)
 	}
 
-	return CreateMashling(SetupNewProjectEnv(), gatewayJson, appDir, gatewayName, c.vendorDir)
+	return CreateMashling(SetupNewProjectEnv(), gatewayJSON, appDir, gatewayName, c.vendorDir)
 }
