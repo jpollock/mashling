@@ -41,11 +41,6 @@ func TestSampleGateways(t *testing.T) {
 	})
 
 	for index, file := range fileList {
-		// Skip secure sample for now until env vars are handled at test time.
-		if filepath.Base(file) == "secure-rest-conditional-gateway.json" {
-			fmt.Fprintf(os.Stdout, "Skipping: '%v'\n", file)
-			continue
-		}
 		fmt.Fprintf(os.Stdout, "Loading: '%v'\n", file)
 
 		gatewayJson, err := fgutil.LoadLocalFile(file)
