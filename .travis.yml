@@ -15,6 +15,9 @@ before_install:
 install:
   - go get -u github.com/constabulary/gb/...
 
+before_script:
+  - ./scripts/hooks/go-vet
+  - ./scripts/hooks/go-fmt
 script:
   - go test -v ./cli/...
 

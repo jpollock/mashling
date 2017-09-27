@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ -n "$(gofmt -l cli/ ext/ lib/)" ]; then
+    echo "Go code is not formatted:"
+    gofmt -d cli/ ext/ lib/
+    exit 1
+fi
