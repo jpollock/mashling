@@ -2,7 +2,7 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package app
 
 import (
@@ -376,7 +376,6 @@ func ListComponents(env env.Project, cType ComponentType) ([]*Component, error) 
 	if cType == 3 || cType == HANDLER {
 		if microgateway.Gateway.EventHandlers != nil {
 			for _, handler := range microgateway.Gateway.EventHandlers {
-				cType.String()
 				components = append(components, &Component{Name: handler.Name, Type: HANDLER, Ref: handler.Reference})
 			}
 		}
@@ -452,7 +451,6 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 		s, err := user.CreateAPI(string(cleanedTfSwaggerDoc), token)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Unable to create the api %s\n\n", s)
-			fmt.Errorf("%v", err)
 			return err
 		}
 
@@ -465,7 +463,7 @@ func PublishToMashery(user *ApiUser, appDir string, gatewayJSON string, host str
 		}
 
 		fmt.Printf("%s", prettyJSON.Bytes())
-		fmt.Println("\nMocked! Did not attempt to publish.\n")
+		fmt.Println("\nMocked! Did not attempt to publish.")
 	}
 
 	return nil

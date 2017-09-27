@@ -56,9 +56,7 @@ func TestSampleGateways(t *testing.T) {
 		assert.NoError(t, err, "Error: Error creating mashling app '%v' - %v", gatewayName, err)
 
 		sample := testDir + "/" + gatewayName
-		if _, err := os.Stat(sample); os.IsNotExist(err) {
-			fmt.Sprintf("File [%v] generated Samples dir [%v]", file, sample)
-		}
+		_, err = os.Stat(sample)
 		assert.NoError(t, err, "Error: Error getting the sample app dir '%v' %v", sample, err)
 
 	}

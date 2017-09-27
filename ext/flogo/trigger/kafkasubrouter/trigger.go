@@ -136,8 +136,7 @@ func run(t *KafkaSubTrigger) error {
 	for id, handler := range t.kafkaParms.handlers {
 		validPartitions, error := kafkaConsumer.Partitions(handler.topic)
 		if error != nil {
-			return fmt.Errorf("Failed to get valid partitions for topic [%s] for reason [%s].  Aborting subscriber",
-				error)
+			return fmt.Errorf("Failed to get valid partitions for topic [%s] for reason [%s].  Aborting subscriber", handler.topic, error)
 		}
 		flogoLogger.Debugf("Subscribing to topic [%s]", handler.topic)
 
