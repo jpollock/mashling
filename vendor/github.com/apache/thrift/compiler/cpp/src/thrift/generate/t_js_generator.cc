@@ -1118,7 +1118,7 @@ void t_js_generator::generate_process_function(t_service* tservice, t_function* 
   f_service_ << indent() << "if (this._handler." << tfunction->get_name()
              << ".length === " << fields.size() << ") {" << endl;
   indent_up();
-  indent(f_service_) << "Q.fcall(this._handler." << tfunction->get_name();
+  indent(f_service_) << "Q.fcall(this._handler." << tfunction->get_name() << ".bind(this._handler)";
 
   for (f_iter = fields.begin(); f_iter != fields.end(); ++f_iter) {
     f_service_ << ", args." << (*f_iter)->get_name();
@@ -1483,11 +1483,20 @@ void t_js_generator::generate_service_client(t_service* tservice) {
                  << "', " << messageType << ", this.seqid);" << endl;
     }
 
-    f_service_ << indent() << "var args = new " << argsname << "();" << endl;
-
-    for (fld_iter = fields.begin(); fld_iter != fields.end(); ++fld_iter) {
-      f_service_ << indent() << "args." << (*fld_iter)->get_name() << " = "
-                 << (*fld_iter)->get_name() << ";" << endl;
+    if (fields.size() > 0){
+      f_service_ << indent() << "var params = {" << endl;
+      for (fld_iter = fields.begin(); fld_iter != fields.end(); ++fld_iter) {
+        f_service_ << indent() << indent() << (*fld_iter)->get_name() << ": " << (*fld_iter)->get_name();
+        if (fld_iter != fields.end()-1) {
+          f_service_ << "," << endl;
+        } else {
+          f_service_ << endl;
+        }
+      }
+      f_service_ << indent() << "};" << endl;
+      f_service_ << indent() << "var args = new " << argsname << "(params);" << endl;
+    } else {
+      f_service_ << indent() << "var args = new " << argsname << "();" << endl;
     }
 
     // Write to the stream
@@ -1501,16 +1510,20 @@ void t_js_generator::generate_service_client(t_service* tservice) {
         f_service_ << indent() << "return this.output.getTransport().flush(callback);" << endl;
       } else {
         f_service_ << indent() << "if (callback) {" << endl;
-        f_service_ << indent() << "  var self = this;" << endl;
-        f_service_ << indent() << "  this.output.getTransport().flush(true, function() {" << endl;
-        f_service_ << indent() << "    var result = null;" << endl;
-        f_service_ << indent() << "    try {" << endl;
-        f_service_ << indent() << "      result = self.recv_" << funname << "();" << endl;
-        f_service_ << indent() << "    } catch (e) {" << endl;
-        f_service_ << indent() << "      result = e;" << endl;
-        f_service_ << indent() << "    }" << endl;
-        f_service_ << indent() << "    callback(result);" << endl;
-        f_service_ << indent() << "  });" << endl;
+        if((*f_iter)->is_oneway()) {
+          f_service_ << indent() << "  this.output.getTransport().flush(true, null);" << endl;
+        } else {
+          f_service_ << indent() << "  var self = this;" << endl;
+          f_service_ << indent() << "  this.output.getTransport().flush(true, function() {" << endl;
+          f_service_ << indent() << "    var result = null;" << endl;
+          f_service_ << indent() << "    try {" << endl;
+          f_service_ << indent() << "      result = self.recv_" << funname << "();" << endl;
+          f_service_ << indent() << "    } catch (e) {" << endl;
+          f_service_ << indent() << "      result = e;" << endl;
+          f_service_ << indent() << "    }" << endl;
+          f_service_ << indent() << "    callback(result);" << endl;
+          f_service_ << indent() << "  });" << endl;
+        }
         f_service_ << indent() << "} else {" << endl;
         f_service_ << indent() << "  return this.output.getTransport().flush();" << endl;
         f_service_ << indent() << "}" << endl;
@@ -1651,7 +1664,7 @@ void t_js_generator::generate_deserialize_field(ofstream& out,
         throw "compiler error: cannot serialize void field in a struct: " + name;
         break;
       case t_base_type::TYPE_STRING:
-        out << (((t_base_type*)type)->is_binary() ? "readBinary()" : "readString()");
+        out << (type->is_binary() ? "readBinary()" : "readString()");
         break;
       case t_base_type::TYPE_BOOL:
         out << "readBool()";
@@ -1849,7 +1862,7 @@ void t_js_generator::generate_serialize_field(ofstream& out, t_field* tfield, st
         throw "compiler error: cannot serialize void field in a struct: " + name;
         break;
       case t_base_type::TYPE_STRING:
-        out << (((t_base_type*)type)->is_binary() ? "writeBinary(" : "writeString(") << name << ")";
+        out << (type->is_binary() ? "writeBinary(" : "writeString(") << name << ")";
         break;
       case t_base_type::TYPE_BOOL:
         out << "writeBool(" << name << ")";
@@ -2218,10 +2231,10 @@ std::string t_js_generator::ts_function_signature(t_function* tfunction, bool in
   }
 
   if (include_callback) {
-    str += "callback: Function): ";
+    str += "callback: (data: " + ts_get_type(tfunction->get_returntype()) + ")=>void): ";
 
     if (gen_jquery_) {
-      str += "JQueryXHR;";
+      str += "JQueryPromise<" + ts_get_type(tfunction->get_returntype()) +">;";
     } else {
       str += "void;";
     }

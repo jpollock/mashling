@@ -40,7 +40,7 @@
 [[projects]]
   name = "github.com/apache/thrift"
   packages = ["lib/go/thrift"]
-  revision = "b2a4d4ae21c789b689dd162deb819665567f481c"
+  revision = "39310dad793ca69b4b7217a3b54430e682e5e2a4"
   version = "0.10.0"
 
 [[projects]]
