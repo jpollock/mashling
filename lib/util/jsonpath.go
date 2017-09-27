@@ -2,15 +2,16 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package util
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/NodePrime/jsonpath"
 	"github.com/TIBCOSoftware/flogo-lib/logger"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 var newLogger = logger.GetLogger("jsonpath-eval")
