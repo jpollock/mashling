@@ -2,12 +2,14 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package app
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 
@@ -56,6 +58,20 @@ func (c *cmdBuild) Exec(args []string) error {
 		return err
 	}
 	var gatewayFile = path.Join(currentDir, util.Gateway_Definition_File_Name)
+	var bytes []byte
+	if b64GatewayJSON := os.Getenv("MASHLING_CONFIG"); b64GatewayJSON != "" {
+		fmt.Fprintf(os.Stderr, "Environment variable MASHLING_CONFIG exists, using those contents to overwrite %s\n\n", util.Gateway_Definition_File_Name)
+		bytes, err = base64.StdEncoding.DecodeString(b64GatewayJSON)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: Cannot read contents of existing MASHLING_CONFIG environment variable: %s\n\n", err.Error())
+			os.Exit(1)
+		}
+		err = ioutil.WriteFile(gatewayFile, bytes, 0644)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: Cannot write contents of existing MASHLING_CONFIG environment variable to %s: %s\n\n", util.Gateway_Definition_File_Name, err.Error())
+			os.Exit(1)
+		}
+	}
 	if !fgutil.FileExists(gatewayFile) {
 		fmt.Fprintf(os.Stderr, "Error: Invalid gateway project, didn't find "+gatewayFile+"\n\n")
 		return err

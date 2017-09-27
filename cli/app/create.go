@@ -2,7 +2,7 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package app
 
 import (
@@ -94,6 +94,7 @@ func (c *cmdCreate) Exec(args []string) error {
 		gatewayName = args[0]
 
 		if b64GatewayJSON := os.Getenv("MASHLING_CONFIG"); b64GatewayJSON != "" {
+			fmt.Fprintf(os.Stderr, "Environment variable MASHLING_CONFIG exists, using those contents...\n\n")
 			bytes, err = base64.StdEncoding.DecodeString(b64GatewayJSON)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error: Cannot read contents of existing MASHLING_CONFIG environment variable: %s\n\n", err.Error())
