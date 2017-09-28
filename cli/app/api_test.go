@@ -1812,7 +1812,6 @@ func TestGetGatewayDetails(t *testing.T) {
 }
 
 func TestTranslateGatewayJSON2FlogoJSON(t *testing.T) {
-
 	flogoJSON, err := TranslateGatewayJSON2FlogoJSON(gatewayJSON)
 
 	if err != nil {

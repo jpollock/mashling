@@ -7,9 +7,10 @@ package app
 
 import (
 	"flag"
-	"github.com/TIBCOSoftware/mashling/cli/cli"
 	"os"
 	"testing"
+
+	"github.com/TIBCOSoftware/mashling/cli/cli"
 )
 
 func TestPublishCommand(t *testing.T) {

@@ -125,6 +125,7 @@ func TestSwaggerGeneration(t *testing.T) {
 
 	// Compare generated Swagger JSON to expected constants.
 	for filename, expected := range samples {
+		t.Logf("Generating swagger for: '%s'\n", filename)
 		sample, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", dir, filename))
 		assert.NoError(t, err, "Error: Error getting the sample file '%s' %v", filename, err)
 		swagger, err := generateSwagger("localhost", "", string(sample))
