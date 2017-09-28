@@ -19,7 +19,7 @@ before_script:
   - ./scripts/hooks/go-vet
   - ./scripts/hooks/go-fmt
 script:
-  - go test ./...
+  - travis_wait go test ./...
 
 after_script:
   - "[ -f \"${HOME}/.netrc\" ] && rm -f ${HOME}/.netrc"
