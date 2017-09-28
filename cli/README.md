@@ -1,5 +1,5 @@
 # mashling/cli
-> Command line tool for building **Mashling**-based gateways.
+> Command line tool for building **Mashling** based gateways.
 
 **Mashling** is a Micro-gateway framework written in Go. It was designed from the ground up to be robust enough for microservices.
 
@@ -8,8 +8,8 @@
 ### Prerequisites
 * The Go programming language 1.7 or later should be [installed](https://golang.org/doc/install).
 * Set GOPATH environment variable on your system
-* In order to simplify development and building in Go, we are using the **gb** build tool.  It can be downloaded from [here](https://getgb.io).  
-* For a private repo, set up ssh interaction with github. Follow the instruction [here](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account) and run the following command  
+* In order to simplify development and building in Go, we are using the **gb** build tool.  It can be downloaded from [here](https://getgb.io).
+* For a private repo, set up ssh interaction with github. Follow the instruction [here](https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account) and run the following command
     git config --global url."git@github.com:".insteadOf "https://github.com/"
 
 ### Install Mashling
@@ -19,7 +19,7 @@
     go get -u github.com/TIBCOSoftware/mashling/...
 
 ## Getting Started
-A mashling gateway is created using the **mashling** CLI tool.  The tool can be used to create a gateway from an existing *mashling.json* or to create a simple base gateway to get you started.  In this example we will walk you through creating the base gateway.
+A Mashling gateway is created using the **mashling** CLI tool.  The tool can be used to create a gateway from an existing *mashling.json* or to create a simple base gateway to get you started.  In this example we will walk you through creating the base gateway.
 
 To create the base gateway, which consists of a REST trigger and a simple event handler flow with a log activity, use the following command:
 
@@ -39,7 +39,7 @@ cd myApp/bin
 - Mashling will start a REST server
 - Send GET request to run the flow. eg: http://localhost:9096/pets/2
 
-The base gateway is built with the following mashling.json. It can be edited to add additional triggers and event handlers. A variation of base gateway is called a mashling recipe. Mashling recipes can be download from mashling.io.
+The base gateway is built with the following mashling.json. It can be edited to add additional triggers and event handlers. A variation of base gateway is called a Mashling recipe. Mashling recipes can be download from mashling.io.
 
 
 ```json
@@ -101,18 +101,18 @@ The base gateway is built with the following mashling.json. It can be edited to 
 For more details about the REST Trigger configuration go [here](https://github.com/TIBCOSoftware/flogo-contrib/tree/master/trigger/rest#example-configurations)
 
 ## Documentation
-Additional documentation on mashling and the CLI tool
+Additional documentation on Mashling and the CLI tool
 
-### mashling cli tool ###
-Details about the mashling cli commands are [here](docs/gateway.md)
+### Mashling cli tool ###
+Details about the Mashling cli commands are [here](docs/gateway.md)
 
-### mashling json configuration ###
-Details about the mashling json configuration are [here](docs/gateway.md)
+### Mashling json configuration ###
+Details about the Mashling json configuration are [here](docs/gateway.md)
 
-### mashling triggers ###
-For more details about the mashling REST Trigger, go [here](https://github.com/TIBCOSoftware/mashling/tree/master/ext/flogo/trigger/gorillamuxtrigger)
+### Mashling triggers ###
+For more details about the Mashling REST Trigger, go [here](https://github.com/TIBCOSoftware/mashling/tree/master/ext/flogo/trigger/gorillamuxtrigger)
 
-For more details about the mashling Kafka Trigger, go [here](https://github.com/TIBCOSoftware/mashling/tree/master/ext/flogo/trigger/kafkasubrouter)
+For more details about the Mashling Kafka Trigger, go [here](https://github.com/TIBCOSoftware/mashling/tree/master/ext/flogo/trigger/kafkasubrouter)
 
 ## Contributing and support
 
@@ -130,21 +130,21 @@ Pull requests are also welcome. If you would like to submit one, please follow t
 
 Please submit a github issue if you would like to propose a significant change or request a new feature.
 
-### Build mashling CLI from source
+### Build Mashling CLI from source
 ```
 $go get github.com/TIBCOSoftware/mashling/...
 
 $cd $GOPATH/src/github.com/TIBCOSoftware/mashling
 
-[optional, only if building from branch] 
+[optional, only if building from branch]
 $git checkout my_branch
 
-[need to manually go get all dependencies for example:] 
+[need to manually go get all dependencies for example:]
 $go get github.com/xeipuuv/gojsonschema
 
-$go install ./... 
+$go install ./...
 ```
-mashling CLI is built and installed in $GOPATH/bin
+Mashling CLI is built and installed in $GOPATH/bin
 
 ### Support
 You can post your questions via [GitHub issues](https://github.com/TIBCOSoftware/mashling/issues)
