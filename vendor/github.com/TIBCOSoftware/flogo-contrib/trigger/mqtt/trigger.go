@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"time"
 
-	"github.com/eclipse/paho.mqtt.golang"
+	"github.com/TIBCOSoftware/flogo-contrib/action/flow/support"
 	"github.com/TIBCOSoftware/flogo-lib/core/action"
 	"github.com/TIBCOSoftware/flogo-lib/core/trigger"
-	"github.com/TIBCOSoftware/flogo-contrib/action/flow/support"
 	"github.com/TIBCOSoftware/flogo-lib/logger"
+	"github.com/eclipse/paho.mqtt.golang"
 )
 
 // log is the default package logger
@@ -167,8 +168,17 @@ func (t *MqttTrigger) publishMessage(topic string, message string) {
 		log.Error("Error converting \"qos\" to an integer ", err.Error())
 		return
 	}
+	if len(topic) == 0 {
+		log.Warn("Invalid empty topic to publish to")
+		return
+	}
 	token := t.client.Publish(topic, byte(qos), false, message)
-	token.Wait()
+	sent := token.WaitTimeout(5000 * time.Millisecond)
+	if !sent {
+		// Timeout occurred
+		log.Errorf("Timeout occurred while trying to publish to topic '%s'", topic)
+		return
+	}
 }
 
 func (t *MqttTrigger) constructStartRequest(message string) *StartRequest {

@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -18,31 +17,26 @@ import (
 )
 
 // Interface for the engine behaviour
-// Todo: rename to Engine once the refactoring is completed
-type IEngine interface {
-	Start()
-	Stop()
-}
-
-// Engine creates and executes FlowInstances.
-type Engine struct {
-	generator      *util.Generator
-	runner         action.Runner
-	serviceManager *util.ServiceManager
-	engineConfig   *Config
-	triggersConfig *TriggersConfig
+type Engine interface {
+	Init(directRunner bool) error
+	Start() error
+	Stop() error
 }
 
 // EngineConfig is the type for the Engine Configuration
 type EngineConfig struct {
 	App            *app.Config
+	initialized    bool
 	LogLevel       string
-	runner         action.Runner
+	actionRunner   action.Runner
 	serviceManager *util.ServiceManager
+
+	actions  map[string]action.Action
+	triggers map[string]*trigger.TriggerInstance
 }
 
 // New creates a new Engine
-func New(app *app.Config) (IEngine, error) {
+func New(app *app.Config) (Engine, error) {
 	// App is required
 	if app == nil {
 		return nil, errors.New("Error: No App configuration provided")
@@ -58,74 +52,85 @@ func New(app *app.Config) (IEngine, error) {
 
 	logLevel := config.GetLogLevel()
 
-	runnerType := config.GetRunnerType()
+	return &EngineConfig{App: app, serviceManager: util.GetDefaultServiceManager(), LogLevel:logLevel}, nil
+}
 
-	var r action.Runner
-	// Todo document this values for engine configuration
-	if runnerType == "DIRECT" {
-		r = runner.NewDirect()
-	} else {
-		runnerConfig := defaultRunnerConfig()
-		r = runner.NewPooled(runnerConfig.Pooled)
+func (e *EngineConfig) Init(directRunner bool) error {
+
+	if !e.initialized {
+		e.initialized = true
+
+		if directRunner {
+			e.actionRunner = runner.NewDirect()
+		} else {
+			runnerConfig := defaultRunnerConfig()
+			e.actionRunner = runner.NewPooled(runnerConfig.Pooled)
+		}
+
+		// Initialize the properties
+		for id, value := range e.App.Properties {
+			property.Register(id, value)
+		}
+
+		instanceHelper := app.NewInstanceHelper(e.App, trigger.Factories(), action.Factories())
+
+		// Create the trigger instances
+		tInstances, err := instanceHelper.CreateTriggers()
+		if err != nil {
+			errorMsg := fmt.Sprintf("Engine: Error Creating trigger instances - %s", err.Error())
+			logger.Error(errorMsg)
+			panic(errorMsg)
+		}
+
+		// Initialize and register the triggers
+		for key, value := range tInstances {
+			triggerInterface := value.Interf
+
+			//Init
+			triggerInterface.Init(e.actionRunner)
+			//Register
+			trigger.RegisterInstance(key, value)
+		}
+
+		e.triggers = tInstances
+
+		// Create the action instances
+		actions, err := instanceHelper.CreateActions()
+		if err != nil {
+			errorMsg := fmt.Sprintf("Engine: Error Creating action instances - %s", err.Error())
+			logger.Error(errorMsg)
+			panic(errorMsg)
+		}
+
+		// Initialize and register the actions,
+		for key, value := range actions {
+			action.Register(key, value)
+			//do we need an init?
+		}
+
+		e.actions = actions
 	}
 
-	return &EngineConfig{App: app, LogLevel: logLevel, runner: r, serviceManager: util.GetDefaultServiceManager()}, nil
+	return nil
 }
 
 //Start initializes and starts the Triggers and initializes the Actions
-func (e *EngineConfig) Start() {
+func (e *EngineConfig) Start() error {
 	logger.Info("Engine: Starting...")
 
-	// Initialize the properties
-	for id, value := range e.App.Properties {
-		property.Register(id, value)
-	}
+	// Todo document RunnerType for engine configuration
+	runnerType := config.GetRunnerType()
+	e.Init(runnerType == "DIRECT")
 
-	instanceHelper := app.NewInstanceHelper(e.App, trigger.Factories(), action.Factories())
+	actionRunner := e.actionRunner.(interface{})
 
-	// Create the trigger instances
-	tInstances, err := instanceHelper.CreateTriggers()
-	if err != nil {
-		errorMsg := fmt.Sprintf("Engine: Error Creating trigger instances - %s", err.Error())
-		logger.Error(errorMsg)
-		panic(errorMsg)
-	}
-
-	// Initialize and register the triggers
-	for key, value := range tInstances {
-		triggerInterface := value.Interf
-
-		//Init
-		triggerInterface.Init(e.runner)
-		//Register
-		trigger.RegisterInstance(key, value)
-	}
-
-	// Create the action instances
-	actions, err := instanceHelper.CreateActions()
-	if err != nil {
-		errorMsg := fmt.Sprintf("Engine: Error Creating action instances - %s", err.Error())
-		logger.Error(errorMsg)
-		panic(errorMsg)
-	}
-
-	// Initialize and register the actions,
-	for key, value := range actions {
-
-		action.Register(key, value)
-		//do we need an init? or start
-	}
-
-	runner := e.runner.(interface{})
-	managedRunner, ok := runner.(util.Managed)
-
-	if ok {
+	if managedRunner, ok := actionRunner.(util.Managed); ok {
 		util.StartManaged("ActionRunner Service", managedRunner)
 	}
 
 	logger.Info("Engine: Starting Services...")
 
-	err = e.serviceManager.Start()
+	err := e.serviceManager.Start()
 
 	if err != nil {
 		logger.Error("Engine: Error Starting Services - " + err.Error())
@@ -134,7 +139,7 @@ func (e *EngineConfig) Start() {
 	}
 
 	// Start the triggers
-	for key, value := range tInstances {
+	for key, value := range e.triggers {
 		err := util.StartManaged(fmt.Sprintf("Trigger [ '%s' ]", key), value.Interf)
 		if err != nil {
 			logger.Infof("Trigger [%s] failed to start due to error [%s]", key, err.Error())
@@ -153,9 +158,10 @@ func (e *EngineConfig) Start() {
 	}
 
 	logger.Info("Engine: Started")
+	return nil
 }
 
-func (e *EngineConfig) Stop() {
+func (e *EngineConfig) Stop() error {
 	logger.Info("Engine: Stopping...")
 
 	// Stop Triggers
@@ -176,10 +182,9 @@ func (e *EngineConfig) Stop() {
 		util.StopManaged("Trigger [ "+tConfig.Id+" ]", tInterf)
 	}
 
-	runner := e.runner.(interface{})
-	managedRunner, ok := runner.(util.Managed)
+	actionRunner := e.actionRunner.(interface{})
 
-	if ok {
+	if managedRunner, ok := actionRunner.(util.Managed); ok {
 		util.StopManaged("ActionRunner", managedRunner)
 	}
 
@@ -195,123 +200,5 @@ func (e *EngineConfig) Stop() {
 	}
 
 	logger.Info("Engine: Stopped")
-}
-
-// NewEngine create a new Engine
-func NewEngine(engineConfig *Config, triggersConfig *TriggersConfig) *Engine {
-
-	var engine Engine
-	engine.generator, _ = util.NewGenerator()
-	engine.engineConfig = engineConfig
-
-	engine.triggersConfig = triggersConfig
-	engine.serviceManager = util.NewServiceManager()
-
-	runnerConfig := engineConfig.RunnerConfig
-
-	if runnerConfig.Type == "direct" {
-		engine.runner = runner.NewDirect()
-	} else {
-		engine.runner = runner.NewPooled(runnerConfig.Pooled)
-	}
-
-	cfgJSON, _ := json.MarshalIndent(engineConfig, "", "  ")
-	logger.Debugf("Engine Configuration:\n%s\n", string(cfgJSON))
-
-	cfgJSON, _ = json.MarshalIndent(triggersConfig, "", "  ")
-	logger.Debugf("Triggers Configuration:\n%s\n", string(cfgJSON))
-
-	return &engine
-}
-
-// RegisterService register a service with the engine
-func (e *Engine) RegisterService(service util.Service) {
-	e.serviceManager.RegisterService(service)
-}
-
-// Start will start the engine, by starting all of its triggers and runner
-func (e *Engine) Start() {
-
-	logger.Info("Engine: Starting...")
-
-	logger.Info("Engine: Starting Services...")
-
-	err := e.serviceManager.Start()
-
-	if err != nil {
-		e.serviceManager.Stop()
-		panic("Engine: Error Starting Services - " + err.Error())
-	}
-
-	logger.Info("Engine: Started Services")
-
-	validateTriggers := e.engineConfig.ValidateTriggers
-
-	triggers := trigger.Triggers()
-
-	var triggersToStart []trigger.TriggerDeprecated
-
-	// initialize triggers
-	for _, trigger := range triggers {
-
-		triggerConfig, found := e.triggersConfig.Triggers[trigger.Metadata().ID]
-
-		if !found && validateTriggers {
-			panic(fmt.Errorf("Trigger configuration for '%s' not provided", trigger.Metadata().ID))
-		}
-
-		if found {
-			trigger.Init(triggerConfig, e.runner)
-			triggersToStart = append(triggersToStart, trigger)
-		}
-	}
-
-	runner := e.runner.(interface{})
-	managedRunner, ok := runner.(util.Managed)
-
-	if ok {
-		util.StartManaged("ActionRunner Service", managedRunner)
-	}
-
-	// start triggers
-	for _, trigger := range triggersToStart {
-		err := util.StartManaged("Trigger [ "+trigger.Metadata().ID+" ]", trigger)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	logger.Info("Engine: Started")
-}
-
-// Stop will stop the engine, by stopping all of its triggers and runner
-func (e *Engine) Stop() {
-
-	logger.Info("Engine: Stopping...")
-
-	triggers := trigger.Triggers()
-
-	// stop triggers
-	for _, trigger := range triggers {
-		util.StopManaged("Trigger [ "+trigger.Metadata().ID+" ]", trigger)
-	}
-
-	runner := e.runner.(interface{})
-	managedRunner, ok := runner.(util.Managed)
-
-	if ok {
-		util.StopManaged("ActionRunner", managedRunner)
-	}
-
-	logger.Info("Engine: Stopping Services...")
-
-	err := e.serviceManager.Stop()
-
-	if err != nil {
-		logger.Error("Engine: Error Stopping Services - " + err.Error())
-	} else {
-		logger.Info("Engine: Stopped Services")
-	}
-
-	logger.Info("Engine: Stopped")
+	return nil
 }

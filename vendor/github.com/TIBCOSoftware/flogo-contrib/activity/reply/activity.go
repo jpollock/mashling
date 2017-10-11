@@ -43,6 +43,8 @@ func (a *ReplyActivity) Eval(context activity.Context) (done bool, err error) {
 	//todo support replying with error
 
 	if replyHandler != nil {
+
+		//todo fix to support new ReplyWithData (had to keep old Reply for backwards compatibility)
 		replyHandler.Reply(code, data, nil)
 	}
 

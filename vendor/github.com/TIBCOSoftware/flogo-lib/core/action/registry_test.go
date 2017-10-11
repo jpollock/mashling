@@ -17,15 +17,23 @@ func (f *MockFactory) New(config *Config) Action {
 type MockAction struct {
 }
 
-func (a *MockAction) Run(context context.Context, uri string, options interface{}, handler ResultHandler) error {
+func (m *MockAction) Config() *Config {
 	return nil
 }
 
-func clearFactory (){
+func (m *MockAction) Metadata() *Metadata {
+	return nil
+}
+
+func (m *MockAction) Run(context context.Context, inputs map[string]interface{}, options map[string]interface{}, handler ResultHandler) error {
+	return nil
+}
+
+func clearFactory() {
 	factories = make(map[string]Factory)
 }
 
-func clearActions (){
+func clearActions() {
 	actions = make(map[string]Action)
 }
 
@@ -152,7 +160,7 @@ func TestGetActionOk(t *testing.T) {
 	err := Register("myinstanceId", a)
 	assert.Nil(t, err)
 
-	myInstance :=  Get("myinstanceId")
+	myInstance := Get("myinstanceId")
 	assert.NotNil(t, myInstance)
 
 	myUnknownInstance := Get("myunknowninstanceId")

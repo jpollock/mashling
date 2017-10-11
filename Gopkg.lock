@@ -22,19 +22,19 @@
 [[projects]]
   name = "github.com/TIBCOSoftware/flogo-cli"
   packages = ["app","cli","env","util"]
-  revision = "53a11e2010618a88450c11db01563457820d0d00"
+  revision = "034384db0f5ccfb6ec31b4143cfa2e15baa47cad"
   version = "v0.4.1"
 
 [[projects]]
   name = "github.com/TIBCOSoftware/flogo-contrib"
-  packages = ["action/flow/definition","action/flow/model","action/flow/test","trigger/rest/cors"]
-  revision = "cde0e8aa3cde3dd2aa75810d0247cd7176c5aafb"
+  packages = ["action/flow/definition","action/flow/model","action/flow/support","action/flow/test","trigger/rest/cors"]
+  revision = "b3ac336af89fda915901917308ae8aafb81b3e7d"
   version = "v0.4.1"
 
 [[projects]]
   name = "github.com/TIBCOSoftware/flogo-lib"
   packages = ["app","config","core/action","core/activity","core/data","core/expr","core/property","core/trigger","logger","util"]
-  revision = "719d8f77c62310328f10bd43a1fc7e47303ffa81"
+  revision = "4bebe7f5c6509cd24a321a1af926eae1307aa7a5"
   version = "v0.4.1"
 
 [[projects]]
@@ -66,6 +66,12 @@
   packages = ["."]
   revision = "ded5959c0d4e360646dc9e9908cff48666781367"
   version = "v1.0.2"
+
+[[projects]]
+  name = "github.com/eclipse/paho.mqtt.golang"
+  packages = [".","packets"]
+  revision = "aff15770515e3c57fc6109da73d42b0d46f7f483"
+  version = "v1.1.0"
 
 [[projects]]
   name = "github.com/go-logfmt/logfmt"
@@ -202,7 +208,7 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
+  packages = ["context","http2","http2/hpack","idna","internal/timeseries","lex/httplex","proxy","trace","websocket"]
   revision = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70"
 
 [[projects]]
@@ -238,6 +244,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5c92c7837e4c6bbb67518e34ad69e9416546d3765fa9dd0021e066a45c8fc9e9"
+  inputs-digest = "e89fee2464a15701403fec7de5aae92ad567f6096a517bf73f725900a844f56a"
   solver-name = "gps-cdcl"
   solver-version = 1
