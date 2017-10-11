@@ -121,11 +121,11 @@ func (c *cmdCreate) Exec(args []string) error {
 
 	appDir := path.Join(currentDir, gatewayName)
 
-	isValidJSON, invalidErr := IsValidateGateway(gatewayJSON)
+	isValidJSON, err := IsValidGateway(gatewayJSON)
 
 	if !isValidJSON {
-		fmt.Fprintf(os.Stderr, "Error: Provided JSON file is invalid: %s\n\n", invalidErr.Error())
-		os.Exit(1)
+		fmt.Print("Mashling creation aborted \n")
+		return err
 	}
 
 	return CreateMashling(SetupNewProjectEnv(), gatewayJSON, appDir, gatewayName, c.vendorDir)
