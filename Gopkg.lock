@@ -28,13 +28,13 @@
 [[projects]]
   name = "github.com/TIBCOSoftware/flogo-contrib"
   packages = ["action/flow/definition","action/flow/model","action/flow/support","action/flow/test","trigger/rest/cors"]
-  revision = "b3ac336af89fda915901917308ae8aafb81b3e7d"
+  revision = "c677fc457d239cdab3f0392f1d6829e33444fe1e"
   version = "v0.4.1"
 
 [[projects]]
   name = "github.com/TIBCOSoftware/flogo-lib"
   packages = ["app","config","core/action","core/activity","core/data","core/expr","core/property","core/trigger","logger","util"]
-  revision = "4bebe7f5c6509cd24a321a1af926eae1307aa7a5"
+  revision = "52e50da7cdbe38eada4b1449992a296c48ae2349"
   version = "v0.4.1"
 
 [[projects]]
