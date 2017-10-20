@@ -2,7 +2,7 @@
 * Copyright © 2017. TIBCO Software Inc.
 * This file is subject to the license terms contained
 * in the license file that is distributed with this file.
-*/
+ */
 package app
 
 import (
@@ -27,7 +27,7 @@ Options:
     -s       the api secret key (required)
     -u       username (required)
     -p       password (required)
-    -portal  the portal (required)
+    -publicDomain  the full qualified domain name to use for registering API in Mashery (required)
     -uuid    the proxy uuid (required)
     -h       the publicly available hostname where this mashling will be deployed (required)
     -mock    true to mock, where it will simply display the transformed swagger doc; false to actually publish to Mashery (default is false)
@@ -39,16 +39,16 @@ func init() {
 }
 
 type cmdPublish struct {
-	option    *cli.OptionInfo
-	fileName  string
-	apiKey    string
-	apiSecret string
-	username  string
-	password  string
-	uuid      string
-	portal    string
-	mock      string
-	host      string
+	option       *cli.OptionInfo
+	fileName     string
+	apiKey       string
+	apiSecret    string
+	username     string
+	password     string
+	uuid         string
+	publicDomain string
+	mock         string
+	host         string
 }
 
 // HasOptionInfo implementation of cli.HasOptionInfo.OptionInfo
@@ -63,7 +63,7 @@ func (c *cmdPublish) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&(c.username), "u", "", "username")
 	fs.StringVar(&(c.password), "p", "", "password")
 	fs.StringVar(&(c.uuid), "uuid", "", "uuid")
-	fs.StringVar(&(c.portal), "portal", "", "portal")
+	fs.StringVar(&(c.publicDomain), "publicDomain", "", "publicDomain")
 	fs.StringVar(&(c.fileName), "f", "mashling.json", "gateway app file")
 	fs.StringVar(&(c.mock), "mock", "false", "mock")
 	fs.StringVar(&(c.host), "h", "", "the publicly available hostname where this mashling will be deployed")
@@ -73,7 +73,7 @@ func (c *cmdPublish) AddFlags(fs *flag.FlagSet) {
 // Exec implementation of cli.Command.Exec
 func (c *cmdPublish) Exec(args []string) error {
 	if c.apiKey == "" || c.apiSecret == "" || c.username == "" || c.password == "" ||
-		c.uuid == "" || c.portal == "" {
+		c.uuid == "" || c.publicDomain == "" {
 		return errors.New("Error: api key and api secret keys are required")
 	}
 
@@ -89,7 +89,7 @@ func (c *cmdPublish) Exec(args []string) error {
 
 	gatewayJSON, _, err := GetGatewayJSON(c.fileName)
 
-	user := ApiUser{c.username, c.password, c.apiKey, c.apiSecret, c.uuid, c.portal}
+	user := ApiUser{c.username, c.password, c.apiKey, c.apiSecret, c.uuid, c.publicDomain}
 	b, err := strconv.ParseBool(c.mock)
 	if err != nil {
 		panic("Invalid option for -mock")
